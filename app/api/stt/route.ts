@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 30;
 
 interface ScribeWord {
   text: string;
@@ -15,9 +17,9 @@ interface ScribeResponse {
 
 /** ElevenLabs Scribe speech-to-text. Returns { text, confidence }. */
 export async function POST(req: Request) {
-  const key = process.env.ELEVENLABS_API_KEY;
+  const key = process.env.ELEVENLABS_API_KEY?.trim();
   if (!key) return NextResponse.json({ error: "ElevenLabs is not configured", fallback: true }, { status: 503 });
-
+  try {
   const incoming = await req.formData();
   const audio = incoming.get("audio");
   if (!(audio instanceof Blob) || audio.size === 0) return NextResponse.json({ error: "No audio" }, { status: 400 });
@@ -50,4 +52,8 @@ export async function POST(req: Request) {
     confidence = Math.max(0, Math.min(1, mean));
   }
   return NextResponse.json({ text, confidence, language_probability: json.language_probability });
+  } catch (err) {
+    console.error("STT route crashed", err);
+    return NextResponse.json({ error: "Speech-to-text crashed", detail: (err as Error).message }, { status: 500 });
+  }
 }
