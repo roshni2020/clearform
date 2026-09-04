@@ -1,0 +1,103 @@
+import type { FormDocument } from "./types";
+
+export const SAMPLE_FORM: FormDocument = {
+  id: "sample-patient-registration",
+  title: "Patient Registration Form",
+  detectedType: "patient registration form",
+  intro:
+    "This appears to be a patient registration form. I found nine information fields and one signature field. Would you like me to guide you through it?",
+  fields: [
+    {
+      id: "fullName",
+      label: "Full name",
+      question: "What is your full name?",
+      kind: "name",
+      critical: true,
+      help: "Your legal name as it appears on your identification or insurance card.",
+      placeholder: "First and last name",
+    },
+    {
+      id: "dob",
+      label: "Date of birth",
+      question: "What is your date of birth?",
+      kind: "date",
+      critical: true,
+      help: "The day, month and year you were born. You can say it naturally, for example: March fourth, nineteen ninety.",
+      placeholder: "Month day, year",
+    },
+    {
+      id: "phone",
+      label: "Phone number",
+      question: "What is the best phone number to reach you?",
+      kind: "phone",
+      critical: true,
+      help: "A phone number the clinic can use to contact you about appointments or results.",
+      placeholder: "(000) 000-0000",
+    },
+    {
+      id: "emergencyContact",
+      label: "Emergency contact",
+      question: "Who should we contact in an emergency, and what is their phone number?",
+      kind: "contact",
+      critical: true,
+      help: "A person the clinic can call if there is an urgent situation involving you. Include their name and phone number.",
+      placeholder: "Name and phone number",
+    },
+    {
+      id: "allergies",
+      label: "Allergies",
+      question: "Do you have any allergies? If so, please list them. You can also say none.",
+      kind: "list",
+      critical: true,
+      help: "Any medications, foods or substances that cause you an allergic reaction. Say none if you have no known allergies.",
+      placeholder: "List allergies or None",
+    },
+    {
+      id: "medications",
+      label: "Current medications",
+      question: "What medications are you currently taking? You can say none.",
+      kind: "list",
+      critical: true,
+      help: "Prescription medicines, over-the-counter medicines, vitamins or supplements you take regularly.",
+      placeholder: "List medications or None",
+    },
+    {
+      id: "physician",
+      label: "Primary care physician",
+      question: "Who is your primary care physician?",
+      kind: "name",
+      critical: false,
+      help: "The main doctor you see for regular check-ups. If you do not have one, you can say none.",
+      placeholder: "Doctor's name",
+    },
+    {
+      id: "insuranceProvider",
+      label: "Insurance provider",
+      question: "What is the name of your insurance provider?",
+      kind: "text",
+      critical: false,
+      help: "The company that provides your health insurance. It is printed on your insurance card.",
+      placeholder: "Insurance company",
+    },
+    {
+      id: "policyNumber",
+      label: "Policy number",
+      question: "What is your insurance policy number? Please say each character slowly.",
+      kind: "identifier",
+      critical: true,
+      help: "The member or policy ID printed on your insurance card. It usually mixes letters and numbers.",
+      placeholder: "Policy or member ID",
+    },
+    {
+      id: "signature",
+      label: "Signature",
+      question: "This document requires your signature.",
+      kind: "signature",
+      critical: true,
+      help: "Your handwritten or electronic signature confirming the information is accurate. ClearForm will never sign on your behalf.",
+    },
+  ],
+};
+
+export const SIGNATURE_MESSAGE =
+  "This document requires your signature. ClearForm will not sign on your behalf. I've completed the remaining fields and left the signature blank for you.";
