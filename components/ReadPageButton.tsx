@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { speak, stopSpeaking } from "@/lib/voice";
 import { speedToRate, useSettings } from "@/lib/settings";
 import { useAnnounce } from "./Announcer";
@@ -16,7 +16,25 @@ export function ReadPageButton({ text }: { text: string }) {
   const announce = useAnnounce();
   const { run, listening } = useVoiceCommand();
   const [speaking, setSpeaking] = useState(false);
+  const toggleRef = useRef<() => void>(() => {});
   useEffect(() => () => stopSpeaking(), []);
+
+  // Hands-free entry: announce on arrival, and let Space start the reading from anywhere on the page.
+  useEffect(() => {
+    const t = window.setTimeout(() => announce("ClearForm. Press Space, or tap the microphone, to hear this page read aloud."), 800);
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (e.key === " " && !["INPUT", "TEXTAREA", "BUTTON", "A", "SELECT"].includes(tag) && !(e.target as HTMLElement)?.isContentEditable) {
+        e.preventDefault();
+        toggleRef.current();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(t);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [announce]);
 
   const toggle = async () => {
     if (speaking || listening) {
@@ -34,6 +52,8 @@ export function ReadPageButton({ text }: { text: string }) {
     await run({ prompt: true });
   };
 
+  toggleRef.current = toggle;
+
   const label = listening ? "Listening… say where to go" : speaking ? "Reading… tap to stop" : "Tap to hear ClearForm";
   return (
     <div className="hear-block">
@@ -43,7 +63,7 @@ export function ReadPageButton({ text }: { text: string }) {
       </button>
       <strong aria-live="polite">{label}</strong>
       <span id="hear-help" className="muted small">
-        ClearForm reads this page out loud, then you can say &ldquo;upload a document&rdquo; or &ldquo;start with voice&rdquo;.
+        Or press Space. ClearForm reads this page out loud, then you can say &ldquo;upload a document&rdquo; or &ldquo;start with voice&rdquo;.
       </span>
     </div>
   );
