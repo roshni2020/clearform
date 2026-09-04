@@ -163,7 +163,7 @@ export function useFormFlow() {
         announce(check.reason ?? AMBIGUOUS_MESSAGE, { assertive: true });
         await say(check.reason ?? AMBIGUOUS_MESSAGE, runId, { keepState: true });
         if (runId !== run.current) return;
-        if (attempt < 1) return listenForAnswer(field, runId, attempt + 1);
+        if (attempt < 2) return listenForAnswer(field, runId, attempt + 1);
         patch({ state: "ready" });
         return;
       }
@@ -208,7 +208,7 @@ export function useFormFlow() {
   );
 
   const listenForConfirmation = useCallback(
-    async (field: FormField, value: string, runId: number) => {
+    async (field: FormField, value: string, runId: number, attempt = 0) => {
       if (runId !== run.current) return;
       patch({ state: "listening", interim: "" });
       announce("Listening for yes or no");
@@ -218,6 +218,7 @@ export function useFormFlow() {
           onInterim: (t) => runId === run.current && patch({ interim: t }),
           onLevel: (l) => runId === run.current && patch({ level: l }),
           maxMs: 8000,
+          silenceMs: 1000,
         });
       } catch {
         if (runId === run.current) patch({ state: "awaiting-confirmation", level: 0 });
@@ -229,7 +230,13 @@ export function useFormFlow() {
       if (yn === "yes") return confirmPending(runId);
       if (yn === "no") return retryPending(runId);
       patch({ state: "awaiting-confirmation" });
-      await say("Please say yes or no, or choose one of the buttons.", runId, { keepState: true });
+      // Nothing clear heard: ask again and keep listening, hands-free.
+      if (attempt < 2) {
+        await say(result.transcript ? `I heard ${result.transcript}. Please say yes if ${value} is correct, or no to try again.` : `I heard ${value}. Is that correct? Please say yes or no.`, runId, { keepState: true });
+        if (runId !== run.current) return;
+        return listenForConfirmation(field, value, runId, attempt + 1);
+      }
+      await say("I still didn't catch a yes or no. You can also use the buttons on screen.", runId, { keepState: true });
     },
     [announce, confirmPending, patch, retryPending, say],
   );

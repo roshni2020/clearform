@@ -218,7 +218,7 @@ async function recordAndTranscribe(opts: ListenOptions): Promise<ListenResult> {
     const rms = Math.sqrt(sum / data.length);
     opts.onLevel?.(Math.min(1, rms * 6));
     const now = performance.now();
-    if (rms > 0.035) {
+    if (rms > 0.02) {
       heardSpeech = true;
       lastSound = now;
     }
@@ -230,7 +230,7 @@ async function recordAndTranscribe(opts: ListenOptions): Promise<ListenResult> {
   cleanup();
 
   const blob = new Blob(chunks, { type: mime || "audio/webm" });
-  if (!heardSpeech || blob.size < 2000) {
+  if (!heardSpeech || blob.size < 1200) {
     return { transcript: "", confidence: 0, provider: "elevenlabs" };
   }
   const form = new FormData();
