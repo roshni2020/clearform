@@ -441,3 +441,10 @@ table.lab .btn { min-height: 44px; padding: 0.4rem 0.9rem; font-size: 0.95rem; }
 .principle-lines .card > svg { margin-bottom: 0.75rem; }
 
 @media (max-width: 760px) { .vc-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .header-actions .btn { padding-inline: 0.8rem; } }
+@media (max-width: 760px) {
+  .header-inner { gap: 0.5rem; }
+  .header-actions { gap: 0.4rem; }
+  .a11y-wrap > .btn > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .a11y-wrap > .btn, .header-actions > .btn { width: 48px; padding: 0; border-radius: 50%; }
+  .a11y-panel { position: fixed; left: 1rem; right: 1rem; width: auto; top: 76px; }
+}
