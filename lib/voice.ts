@@ -126,16 +126,25 @@ function browserSpeak(text: string, rate: number, token: number): Promise<void> 
       voices.find((v) => /Samantha|Google US English|Microsoft Aria|Microsoft Jenny|Karen|Moira/i.test(v.name)) ||
       voices.find((v) => v.lang.startsWith("en"));
     if (preferred) utter.voice = preferred;
-    utter.onend = () => resolve();
-    utter.onerror = () => resolve();
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearInterval(check);
+      clearTimeout(guard);
+      resolve();
+    };
+    utter.onend = finish;
+    utter.onerror = finish;
     window.speechSynthesis.speak(utter);
+    // Watchdog: resolve if cancelled, if the engine never starts, or after a generous max duration.
+    let ticks = 0;
     const check = setInterval(() => {
-      if (token !== speakToken) {
-        clearInterval(check);
-        resolve();
-      }
-      if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) clearInterval(check);
+      ticks++;
+      if (token !== speakToken) finish();
+      else if (ticks > 5 && !window.speechSynthesis.speaking && !window.speechSynthesis.pending) finish();
     }, 200);
+    const guard = setTimeout(finish, Math.min(60000, 3000 + text.length * 90));
   });
 }
 
