@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isTrustedUrl, linkupStructured } from "@/lib/linkup";
 import type { FormMatch } from "@/lib/types";
+import { linkupKey } from "@/lib/keys";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
   const excerpt = (body.excerpt || "").toString().slice(0, 1500);
   if (!title && !excerpt) return NextResponse.json({ error: "Nothing to match" }, { status: 400 });
 
-  if (!process.env.LINKUP_API_KEY) {
+  if (!linkupKey()) {
     const match: FormMatch = {
       matched: false,
       confident: false,

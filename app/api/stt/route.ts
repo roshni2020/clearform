@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { elevenLabsKey, redact } from "@/lib/keys";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,7 +18,7 @@ interface ScribeResponse {
 
 /** ElevenLabs Scribe speech-to-text. Returns { text, confidence }. */
 export async function POST(req: Request) {
-  const key = process.env.ELEVENLABS_API_KEY?.trim();
+  const key = elevenLabsKey();
   if (!key) return NextResponse.json({ error: "ElevenLabs is not configured", fallback: true }, { status: 503 });
   try {
   const incoming = await req.formData();
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
   }
   return NextResponse.json({ text, confidence, language_probability: json.language_probability });
   } catch (err) {
-    console.error("STT route crashed", err);
-    return NextResponse.json({ error: "Speech-to-text crashed", detail: (err as Error).message }, { status: 500 });
+    console.error("STT route crashed", redact((err as Error).message));
+    return NextResponse.json({ error: "Speech-to-text crashed", detail: redact((err as Error).message) }, { status: 500 });
   }
 }

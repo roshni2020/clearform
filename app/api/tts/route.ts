@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { elevenLabsKey, redact } from "@/lib/keys";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -9,15 +10,14 @@ const DEFAULT_VOICE = "EXAVITQu4vr4xnSDxMaL";
 
 /** Diagnostic: GET /api/tts reports whether ElevenLabs accepts the configured key (never returns the key). */
 export async function GET() {
-  const key = process.env.ELEVENLABS_API_KEY;
+  const key = elevenLabsKey();
   if (!key) return NextResponse.json({ configured: false });
   try {
-    const r = await fetch("https://api.elevenlabs.io/v1/user/subscription", { headers: { "xi-api-key": key.trim() } });
+    const r = await fetch("https://api.elevenlabs.io/v1/user/subscription", { headers: { "xi-api-key": key } });
     const body = (await r.json().catch(() => ({}))) as Record<string, unknown>;
     return NextResponse.json({
       configured: true,
-      keyLength: key.length,
-      keyTrimmedLength: key.trim().length,
+      rawHadExtraText: (process.env.ELEVENLABS_API_KEY || "").trim() !== key,
       upstreamStatus: r.status,
       tier: body.tier,
       characterCount: body.character_count,
@@ -25,14 +25,14 @@ export async function GET() {
       detail: r.ok ? undefined : body.detail,
     });
   } catch (err) {
-    return NextResponse.json({ configured: true, error: (err as Error).message }, { status: 500 });
+    return NextResponse.json({ configured: true, error: redact((err as Error).message) }, { status: 500 });
   }
 }
 
 /** ElevenLabs text-to-speech. Returns audio/mpeg. */
 export async function POST(req: Request) {
   try {
-    const key = process.env.ELEVENLABS_API_KEY?.trim();
+    const key = elevenLabsKey();
     if (!key) return NextResponse.json({ error: "ElevenLabs is not configured", fallback: true }, { status: 503 });
 
     let body: { text?: string; rate?: number };
@@ -61,14 +61,14 @@ export async function POST(req: Request) {
     if (!upstream.ok) {
       const detail = await upstream.text().catch(() => "");
       console.error("ElevenLabs TTS error", upstream.status, detail.slice(0, 500));
-      return NextResponse.json({ error: "Text-to-speech failed", upstreamStatus: upstream.status, detail: detail.slice(0, 300), fallback: true }, { status: 502 });
+      return NextResponse.json({ error: "Text-to-speech failed", upstreamStatus: upstream.status, detail: redact(detail.slice(0, 300)), fallback: true }, { status: 502 });
     }
     const audio = await upstream.arrayBuffer();
     return new Response(audio, {
       headers: { "Content-Type": "audio/mpeg", "Content-Length": String(audio.byteLength), "Cache-Control": "no-store" },
     });
   } catch (err) {
-    console.error("TTS route crashed", err);
-    return NextResponse.json({ error: "Text-to-speech crashed", detail: (err as Error).message, fallback: true }, { status: 500 });
+    console.error("TTS route crashed", redact((err as Error).message));
+    return NextResponse.json({ error: "Text-to-speech crashed", detail: redact((err as Error).message), fallback: true }, { status: 500 });
   }
 }

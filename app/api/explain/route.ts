@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { lookupGlossary, normalizeTerm } from "@/lib/glossary";
 import { TRUSTED_DOMAINS, isTrustedUrl, linkupSourcedAnswer, looksLikePersonalValueQuestion, VALUE_GUARD_MESSAGE } from "@/lib/linkup";
 import type { Explanation } from "@/lib/types";
+import { linkupKey } from "@/lib/keys";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
   const glossaryHit = lookupGlossary(question);
   const context = body.context ? ` in the context of a ${body.context}` : "";
 
-  if (process.env.LINKUP_API_KEY) {
+  if (linkupKey()) {
     const prompt = `Explain the term or field "${term}"${context} in plain, simple language suitable for someone hearing it read aloud. Two or three short sentences. Define only what the term means in general; do not give medical, legal or financial advice, do not diagnose, and do not suggest values.`;
     try {
       let result = await linkupSourcedAnswer(prompt, TRUSTED_DOMAINS);

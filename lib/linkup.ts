@@ -1,3 +1,5 @@
+import { linkupKey } from "./keys";
+
 /**
  * Linkup server-side helper — the trusted explanation and official-guidance layer.
  *
@@ -57,7 +59,7 @@ export const VALUE_GUARD_MESSAGE =
   "I can explain what a term or field means, but I can't determine patient-specific values, dosages, results or answers. Please check with the document or a qualified professional.";
 
 async function linkupFetch(body: Record<string, unknown>): Promise<Response> {
-  const key = process.env.LINKUP_API_KEY;
+  const key = linkupKey();
   if (!key) throw new Error("LINKUP_API_KEY not configured");
   return fetch("https://api.linkup.so/v1/search", {
     method: "POST",
