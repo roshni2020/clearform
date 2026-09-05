@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { STOP_EVENT } from "@/components/GlobalStop";
 import { LAB_DOCUMENT, LOW_CONFIDENCE_THRESHOLD, documentToSpeech, rowToSpeech } from "@/lib/labDocument";
 import { speak, stopSpeaking } from "@/lib/voice";
 import { speedToRate, useSettings } from "@/lib/settings";
@@ -17,6 +18,11 @@ export function UnderstandClient() {
   const [askTerm, setAskTerm] = useState<string | undefined>(undefined);
   const [lastSpoken, setLastSpoken] = useState("");
   const doc = LAB_DOCUMENT;
+  useEffect(() => {
+    const off = () => setSpeaking(false);
+    window.addEventListener(STOP_EVENT, off);
+    return () => window.removeEventListener(STOP_EVENT, off);
+  }, []);
 
   const say = async (text: string) => {
     stopSpeaking();
@@ -156,6 +162,11 @@ export function UnderstandClient() {
             </div>
             <Wave state={speaking ? "speaking" : "ready"} />
             <p style={{ fontSize: "1.1rem", minHeight: "3rem" }}>{lastSpoken || "Choose a row to hear it read aloud, or read the whole document."}</p>
+            {speaking && (
+              <button type="button" className="btn btn-secondary btn-lg" onClick={stop}>
+                <StopIcon className="icon" /> Stop reading
+              </button>
+            )}
             {lastSpoken && !speaking && (
               <button type="button" className="btn btn-ghost" onClick={() => say(lastSpoken)}>
                 <SpeakerIcon className="icon" /> Hear again

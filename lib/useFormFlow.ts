@@ -7,6 +7,7 @@ import { checkTranscript, parseYesNo, tidyValue, AMBIGUOUS_MESSAGE } from "./con
 import { listen, speak, stopListening, stopSpeaking } from "./voice";
 import { speedToRate, useSettings } from "./settings";
 import { useAnnounce } from "@/components/Announcer";
+import { STOP_EVENT } from "@/components/GlobalStop";
 
 export interface FlowState {
   doc: FormDocument | null;
@@ -341,6 +342,15 @@ export function useFormFlow() {
     patch({ state: stateRef.current.pending ? "awaiting-confirmation" : "ready", level: 0 });
     announce("Stopped");
   }, [announce, cancel, patch]);
+
+  useEffect(() => {
+    const onStop = () => {
+      run.current++;
+      patch({ state: stateRef.current.pending ? "awaiting-confirmation" : "ready", level: 0 });
+    };
+    window.addEventListener(STOP_EVENT, onStop);
+    return () => window.removeEventListener(STOP_EVENT, onStop);
+  }, [patch]);
 
   const stats = useMemo(() => {
     const vals = Object.values(s.answers);
